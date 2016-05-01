@@ -12,7 +12,6 @@ router.get('/', function(req, res) {
 });
 
 //REST API for bookmarks
-
 router.route('/folders')
 	  .post(function(req,res){
 	  		var folder = new Folder();

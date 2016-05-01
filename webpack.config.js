@@ -1,23 +1,30 @@
 var path = require('path');
+var PROD = JSON.parse(process.env.PROD_ENV || '0');
 module.exports = {
-    entry: './public/js/main.js',
+    entry: './public/js/app.jsx',
+    devtool: 'source-map',
     output: {
         path: __dirname,
-        filename: './public/dist/bundle.js'
+        filename: PROD ? './public/dist/bundle.min.js' : './public/dist/bundle.js' 
     },
     module: {
-        loaders: [{ 
-            test: /\.js$/,
-            loader: "babel-loader",
+        loaders: [{
+            // test: /\.jsx?$/,
+            loaders: ['babel?presets[]=es2015,presets[]=react'],
             include: [
                 path.resolve(__dirname, "./public/js"),
             ],
             exclude: [
-              path.resolve(__dirname, "node_modules"),
+                path.resolve(__dirname, "node_modules"),
             ]
         }],
         resolve: {
-          extensions: ['', '.js', '.jsx']
+            extensions: ['', '.js', '.jsx']
         }
-    }
+    },
+    plugins: PROD ? [
+        new webpack.optimize.UglifyJsPlugin({
+          compress: { warnings: false }
+        })
+    ] : []
 };
