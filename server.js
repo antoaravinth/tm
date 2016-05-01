@@ -7,7 +7,8 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json());
 
 router.get('/', function(req, res) {
-    res.json({ message: 'Hello world' });   
+    // res.json({ message: 'Hello world' });   
+    res.sendfile('./public/index.html');
 });
 
 //REST API for bookmarks
@@ -78,6 +79,6 @@ app.use('/api', router);
 mongoose.connect('localhost:27017/collections')
 
 app.listen(port);
-console.log('Magic happens on port ' + port);
+console.log('server started on ' + port);
 
 
