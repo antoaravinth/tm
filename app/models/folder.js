@@ -6,7 +6,7 @@ var Bookmark = require("./bookmark")
 var BookmarkSchema = new Schema({
 	name : { type: String},
 	url : { type : String}
-}); //id not required for sub documents
+});
 
 var FolderSchema = new Schema({
 	name : { type: String, required: true, unique: true },
