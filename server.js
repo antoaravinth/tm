@@ -10,6 +10,10 @@ router.get('/', function(req, res) {
     res.sendfile('./public/index.html');
 });
 
+router.get('/dist/bundle.js', function(req, res) {
+    res.sendfile('./public/dist/bundle.js');
+});
+
 //REST API for folders
 router.route('/folders')
 	  .post(function(req,res){

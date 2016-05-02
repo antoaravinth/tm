@@ -1,15 +1,13 @@
+import $ from 'jquery'
 import Backbone from 'backbone'
 
 var { Model, View, Collection, Router, LocalStorage } = Backbone;
 
-class Folder extends Model {
-
-  // *Define some default attributes for the todo.*
-  defaults() {
-    return {
-      name : "",
-      url : ""
-    };
-  }
-}
+var Folder = Backbone.Model.extend({
+    idAttribute: '_id',
+    defaults: {
+		name: "",
+		bookmarks : []
+	}
+});
 export default Folder
