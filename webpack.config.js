@@ -2,7 +2,7 @@ var path = require('path');
 var PROD = JSON.parse(process.env.PROD_ENV || '0');
 module.exports = {
     entry: './public/js/app.jsx',
-    devtool: 'source-map',
+    // devtool: 'source-map',
     output: {
         path: __dirname,
         filename: PROD ? './public/dist/bundle.min.js' : './public/dist/bundle.js' 

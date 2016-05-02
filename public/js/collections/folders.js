@@ -1,10 +1,21 @@
 import Backbone from 'backbone'
-import {Folder} from '../models/folder.js'
 
-var { Collection } = Backbone;
+var { Collection , Model } = Backbone;
 
+//Model
+var Folder = Backbone.Model.extend({
+    idAttribute: '_id',
+    defaults: {
+		name: "",
+		bookmarks : []
+	}
+});
+
+//Collection
 var FolderCollections = Backbone.Collection.extend({
   url: "/api/folders",
   model: Folder,
 });
+
+
 export default FolderCollections

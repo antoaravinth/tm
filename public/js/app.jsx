@@ -1,9 +1,12 @@
-import Folder from './models/folder.js'
-import FirstComponent from './views/main.jsx'
+import {FolderComponent} from './views/folder.jsx'
 import React from 'react';
 import ReactDOM from 'react-dom';
 import FolderCollections from './collections/folders.js'
 
-window.Folder = Folder
 window.FolderCollections = FolderCollections
-ReactDOM.render(<FirstComponent />, document.querySelector("#content"));
+
+let folders = new FolderCollections();
+folders.fetch({
+	success : () => ReactDOM.render(<FolderComponent folders={folders}/>, document.querySelector("#content"))
+})
+
