@@ -1,5 +1,5 @@
 import React from "react";
-import { Button , FormGroup , ControlLabel , FormControl , Alert, Col } from 'react-bootstrap';
+import { Button , FormGroup , ControlLabel , FormControl , Alert, Col, Popover,Modal} from 'react-bootstrap';
 import {BookmarkComponent} from './bookmark.jsx';
 import {Popup} from './popup.jsx';
 import ReactDOM from 'react-dom';
@@ -8,7 +8,14 @@ export class FolderComponent extends React.Component {
 
 	constructor(props) {
 	    super(props);
-	    this.state = {edit: false , newFolderName : props.folder.attributes.name , errorMessage: ""};
+	    this.state = {
+	    	edit: false , 
+	    	newFolderName : props.folder.attributes.name , 
+	    	errorMessage: "",
+	    	showNewFolderPopUp : false,
+	    	newBookmarkName : "",
+	    	newUrlLink : ""
+	    };
   	}
 
 	_updateFolderName(){
@@ -55,6 +62,20 @@ export class FolderComponent extends React.Component {
 		})
 	}
 
+	_saveNewBookmark(){
+		this.setState({showNewFolderPopUp: false})
+		this.props.folder.save(
+			{folderid:this.props.folder.attributes._id, name:this.state.newBookmarkName, url : this.state.newUrlLink},
+			{
+				url:"/api/bookmarks/",
+				type: 'POST',
+				success : (model,response) => {
+					// this.props.folderCollection.fetch()
+					model.trigger('add')
+				}
+			})
+	}
+
 	render() {
 		let folder = this.props.folder;
 
@@ -75,6 +96,13 @@ export class FolderComponent extends React.Component {
 				    </FormGroup>
 			    </form>
 			}
+
+            {!this.state.edit &&
+				<Button onClick={this._deleteFolder.bind(this)} style={{float: "right"}} bsSize="xsmall">
+					Delete
+	            </Button>	
+        	}
+
             <Button onClick={ () => this.setState({edit:!this.state.edit}) } style={this.state.edit === true ? {} : {float: "right"}} bsSize="xsmall">
 
             	{this.state.edit && 'Cancel'}
@@ -87,10 +115,35 @@ export class FolderComponent extends React.Component {
             }			
 
             {!this.state.edit &&
-				<Button onClick={this._deleteFolder.bind(this)} style={{float: "right"}} bsSize="xsmall">
-					Delete
-	            </Button>	
-        	}
+            	<Button style={{float: "right"}} bsSize="xsmall" onClick={() => this.setState({showNewFolderPopUp: true})}>Add new bookmark</Button>
+            }
+
+            {this.state.showNewFolderPopUp &&
+	          <div className="modal-container" style={{height: 200}}>
+		        <Modal
+		          show={true}
+		          onHide={() => this.setState({showNewFolderPopUp: false})}
+		          aria-labelledby="contained-modal-title"
+		        >
+		          <Modal.Header closeButton>
+		            <Modal.Title id="contained-modal-title">New Bookmark Details</Modal.Title>
+		          </Modal.Header>
+		          <Modal.Body>
+		            <form>
+					    <FormGroup controlId="formControlsText">
+					      <ControlLabel>Edit Folder Name</ControlLabel>
+					      <FormControl type="text" placeholder="Bookmark name" onChange={(e) => this.setState({newBookmarkName : e.target.value})} defaultValue=""/>
+					      <FormControl type="text" placeholder="Bookmark url" onChange={(e) => this.setState({newUrlLink : e.target.value})} defaultValue=""/>
+					    </FormGroup>
+				    </form>
+		          </Modal.Body>
+		          <Modal.Footer>
+		            <Button onClick={this._saveNewBookmark.bind(this)}>Save</Button>
+		          </Modal.Footer>
+		        </Modal>
+		      </div>
+			}
+
 		</div>);
 	}
 }

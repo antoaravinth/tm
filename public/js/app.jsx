@@ -3,16 +3,21 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import FolderCollections from './collections/folders.js'
 import Folder from './collections/folders.js'
+import Bookmark from './collections/folders.js'
 import { Row,Tab,Nav,NavItem,Col,Table,FormGroup,ControlLabel,FormControl,Form,Button} from 'react-bootstrap';
 import {BookmarkComponent} from './views/bookmark.jsx';
 
 //for debugging
-window.FolderCollections = FolderCollections
+// window.FolderCollections = FolderCollections
 window.Folder = Folder
+window.Bookmark = Bookmark
 
 let folders = new FolderCollections();
 folders.fetch({
-	success : () => ReactDOM.render(<App folders={folders}/>, document.querySelector("#content"))
+	success : () => { 
+		ReactDOM.render(<App folders={folders}/>, document.querySelector("#content"))
+		window.FolderCollections = folders
+	}
 })
 
 class App extends React.Component {
@@ -94,7 +99,9 @@ class App extends React.Component {
 			      </Col>
 			      <Col sm={8}>
 			      	{this.props.folders.map((folder) => { 
-			     		return (<BookmarkComponent folderModel={folder} key={folder.attributes._id}/>)
+			      		return folder.attributes.bookmarks.map((bookmark) => {
+			      			return (<BookmarkComponent bookmark={bookmark} key={bookmark.attributes._id} folder={folder}/>)
+			      		})
 			     	})}
 			      </Col>
 			    </Row>

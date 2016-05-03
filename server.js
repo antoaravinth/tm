@@ -100,7 +100,7 @@ router.route('/folders/:folderid')
 router.route('/bookmarks')
 	  .post(function(req,res){
 
-	  		var query = {name : req.body.foldername} , updatedBookmarksRef ,
+	  		var query = {_id : req.body.folderid} , updatedBookmarksRef ,
 	  			bookmark = new Bookmark();
 
 			Folder.findOne(query,'bookmarks',function(err, folder){
@@ -109,7 +109,7 @@ router.route('/bookmarks')
 					return res.send({error: "Folder not found."});
 
 				updatedBookmarksRef = folder.bookmarks
-				bookmark.name = req.body.bookmarkname;
+				bookmark.name = req.body.name;
 	  			bookmark.url = req.body.url;
 
 	  			updatedBookmarksRef.push(bookmark)
@@ -119,17 +119,17 @@ router.route('/bookmarks')
 	  			query,
 	  			{ $set: { "bookmarks": updatedBookmarksRef } }, 
 	  			{upsert:true}, 
-	  			function(err, doc){
+	  			function(err, response){
 				    if (err) return res.send(err);
-				    return res.json({message : "Bookmark saved successfully"});
+				    return res.json({message : "Bookmark saved successfully",_id:response._id});
 				});
 			})
 		})
 
 //REST API for single documents
-router.route('/folders/:foldername/bookmarks/:bookmarkid')
+router.route('/folders/:folderid/bookmarks/:bookmarkid')
 	  .delete(function(req,res){
-	  		var query = {name : req.params.foldername} , bookmark;
+	  		var query = {_id : req.params.folderid} , bookmark;
 
 			Folder.findOne(query,'bookmarks',function(err, folder){
 
@@ -152,7 +152,7 @@ router.route('/folders/:foldername/bookmarks/:bookmarkid')
 			})
 	  })
 	  .get(function(req,res){
-	  		var query = {name : req.params.foldername} , bookmark;
+	  		var query = {_id : req.params.folderid} , bookmark;
 
 			Folder.findOne(query,'bookmarks',function(err, folder){
 
@@ -167,7 +167,7 @@ router.route('/folders/:foldername/bookmarks/:bookmarkid')
 			})
 	  })
 	  .put(function(req,res){
-	  		var query = {name : req.params.foldername} , updatedBookmarksRef ,
+	  		var query = {_id : req.params.folderid} , updatedBookmarksRef ,
 	  			bookmark = new Bookmark();
 
 			Folder.findOne(query,'bookmarks',function(err, folder){
@@ -178,7 +178,7 @@ router.route('/folders/:foldername/bookmarks/:bookmarkid')
 				bookmark = folder.bookmarks.id(req.params.bookmarkid);
 				if(bookmark != undefined || bookmark != null)
 				{
-					bookmark.name = req.body.bookmarkname;
+					bookmark.name = req.body.name;
 					bookmark.url = req.body.url;
 					folder.save(function (err) {
 				  	if(err)
