@@ -1,5 +1,5 @@
 import React from "react";
-import { Button , FormGroup , ControlLabel , FormControl , Alert, Col, Popover,Modal} from 'react-bootstrap';
+import { Button , FormGroup , ControlLabel , FormControl , Alert, Col, Popover,Modal,Form} from 'react-bootstrap';
 import {BookmarkComponent} from './bookmark.jsx';
 import {Popup} from './popup.jsx';
 import ReactDOM from 'react-dom';
@@ -10,24 +10,52 @@ export class FolderComponent extends React.Component {
 	    super(props);
 	    this.state = {
 	    	edit: false , 
-	    	newFolderName : props.folder.attributes.name , 
+	    	newFolderName : props.folder != undefined ? props.folder.attributes.name : "" , 
 	    	errorMessage: "",
 	    	showNewFolderPopUp : false,
 	    	newBookmarkName : "",
-	    	newUrlLink : ""
+	    	newUrlLink : "",
+	    	newFolderPopUp: false
 	    };
   	}
 
-	_updateFolderName(){
-		// console.log(this.props.folder)
-		let model = this.props.folder
 
-		//run few validations
-		if(this.state.newFolderName.trim() === "")
+  	_validateFolderName(){
+  		if(this.state.newFolderName.trim() === "")
+  		{
 			this.setState({errorMessage : "Folder name can't be empty"})
+			return false
+  		}
 		else if(this.state.newFolderName.length >= 8)
+		{
 			this.setState({errorMessage : "Folder name cant be more than 8 chars"})
-		else{
+			return false
+		}
+
+		return true;
+  	}
+
+	_saveFolder(){
+		let folders = this.props.folders;
+		if(this._validateFolderName()){
+			this.setState({newFolderPopUp : false})
+			folders.add({name : this.state.newFolderName});
+			let newfolder = folders.at(folders.length - 1)
+			newfolder.save(null,{
+				wait: true,
+				error : (model,response) => {
+					console.log(response.responseText)
+					let errorMessage = JSON.parse(response.responseText)
+					this.setState({errorMessage : errorMessage.message })
+				}
+			})
+		}
+	}
+
+	_updateFolderName(){
+		let model = this.props.folder
+		
+		if(this._validateFolderName()){
 			//good to go update.
 			model.save({name:this.state.newFolderName},{
 				patch:true,
@@ -80,72 +108,112 @@ export class FolderComponent extends React.Component {
 		let folder = this.props.folder;
 
 		return (<div>
-			{!this.state.edit && folder.attributes.name}
 
-			{" "}
-			{this.state.errorMessage != "" && this.state.edit &&
-				<Alert bsStyle="warning">
-				    <strong>Error</strong> {this.state.errorMessage}
-				</Alert>
-			}
-			{this.state.edit &&
-				<form>
-				    <FormGroup controlId="formControlsText">
-				      <ControlLabel>Edit Folder Name</ControlLabel>
-				      <FormControl type="text" placeholder="Enter text" required onChange={(e) => this.setState({newFolderName : e.target.value})} defaultValue={folder.attributes.name}/>
-				    </FormGroup>
-			    </form>
-			}
+			{(this.props.newFolder ?
+				<div>
+					<center><Button onClick={() => this.setState({newFolderPopUp : true})}>New Folder</Button></center>
+					<div className="modal-container">
+				        <Modal
+				          show={this.state.newFolderPopUp}
+				          onHide={() => this.setState({newFolderPopUp: false})}
+				          aria-labelledby="contained-modal-title"
+				        >
+				          <Modal.Header closeButton>
+				            <Modal.Title id="contained-modal-title">New Folder Details</Modal.Title>
+				          </Modal.Header>
+				          <Modal.Body>
+				            <form>
+				            {this.state.errorMessage != "" &&
+								<Alert bsStyle="warning">
+								    <strong>Error</strong> {this.state.errorMessage}
+								</Alert>
+							}
+							    <FormGroup controlId="formControlsText">
+							      <ControlLabel>New Folder Name</ControlLabel>
+							      <FormControl type="text" placeholder="Folder name" onChange={(e) => this.setState({newFolderName : e.target.value})}/>
+							    </FormGroup>
+						    </form>
+				          </Modal.Body>
+				          <Modal.Footer>
+				            <Button onClick={this._saveFolder.bind(this)}>Save</Button>
+				          </Modal.Footer>
+				        </Modal>
+			        </div>
+			    </div>
 
-            {!this.state.edit &&
-				<Button onClick={this._deleteFolder.bind(this)} style={{float: "right"}} bsSize="xsmall">
-					Delete
-	            </Button>	
-        	}
+				:
 
-            <Button onClick={ () => this.setState({edit:!this.state.edit}) } style={this.state.edit === true ? {} : {float: "right"}} bsSize="xsmall">
+				<div>
+					{!this.state.edit && folder.attributes.name}
 
-            	{this.state.edit && 'Cancel'}
-            	{!this.state.edit && 'Edit'}
+					{" "}
+					{this.state.errorMessage != "" && this.state.edit &&
+						<Alert bsStyle="warning">
+						    <strong>Error</strong> {this.state.errorMessage}
+						</Alert>
+					}
+					{this.state.edit &&
+						<form>
+						    <FormGroup controlId="formControlsText">
+						      <ControlLabel>Edit Folder Name</ControlLabel>
+						      <FormControl type="text" placeholder="Enter text" required onChange={(e) => this.setState({newFolderName : e.target.value})} defaultValue={folder.attributes.name}/>
+						    </FormGroup>
+					    </form>
+					}
 
-            </Button>
+		            {!this.state.edit &&
+						<Button onClick={this._deleteFolder.bind(this)} style={{float: "right"}} bsSize="xsmall">
+							Delete
+			            </Button>	
+		        	}
 
-            {this.state.edit === true &&
-            	<Button onClick={this._updateFolderName.bind(this)} style={{float: "right"}} bsSize="xsmall">Save</Button>
-            }			
+		            <Button onClick={ () => this.setState({edit:!this.state.edit}) } style={this.state.edit === true ? {} : {float: "right"}} bsSize="xsmall">
 
-            {!this.state.edit &&
-            	<Button style={{float: "right"}} bsSize="xsmall" onClick={() => this.setState({showNewFolderPopUp: true})}>Add new bookmark</Button>
-            }
+		            	{this.state.edit && 'Cancel'}
+		            	{!this.state.edit && 'Edit'}
 
-            {this.state.showNewFolderPopUp &&
-	          <div className="modal-container" style={{height: 200}}>
-		        <Modal
-		          show={true}
-		          onHide={() => this.setState({showNewFolderPopUp: false})}
-		          aria-labelledby="contained-modal-title"
-		        >
-		          <Modal.Header closeButton>
-		            <Modal.Title id="contained-modal-title">New Bookmark Details</Modal.Title>
-		          </Modal.Header>
-		          <Modal.Body>
-		            <form>
-					    <FormGroup controlId="formControlsText">
-					      <ControlLabel>Edit Folder Name</ControlLabel>
-					      <FormControl type="text" placeholder="Bookmark name" onChange={(e) => this.setState({newBookmarkName : e.target.value})} defaultValue=""/>
-					      <FormControl type="text" placeholder="Bookmark url" onChange={(e) => this.setState({newUrlLink : e.target.value})} defaultValue=""/>
-					    </FormGroup>
-				    </form>
-		          </Modal.Body>
-		          <Modal.Footer>
-		            <Button onClick={this._saveNewBookmark.bind(this)}>Save</Button>
-		          </Modal.Footer>
-		        </Modal>
-		      </div>
-			}
+		            </Button>
+
+		            {this.state.edit === true &&
+		            	<Button onClick={this._updateFolderName.bind(this)} style={{float: "right"}} bsSize="xsmall">Save</Button>
+		            }			
+
+		            {!this.state.edit &&
+		            	<Button style={{float: "right"}} bsSize="xsmall" onClick={() => this.setState({showNewFolderPopUp: true})}>Add new bookmark</Button>
+		            }
+
+		            {this.state.showNewFolderPopUp &&
+			          <div className="modal-container" style={{height: 200}}>
+				        <Modal
+				          show={true}
+				          onHide={() => this.setState({showNewFolderPopUp: false})}
+				          aria-labelledby="contained-modal-title"
+				        >
+				          <Modal.Header closeButton>
+				            <Modal.Title id="contained-modal-title">New Bookmark Details</Modal.Title>
+				          </Modal.Header>
+				          <Modal.Body>
+				            <form>
+							    <FormGroup controlId="formControlsText">
+							      <ControlLabel>Edit Folder Name</ControlLabel>
+							      <FormControl type="text" placeholder="Bookmark name" onChange={(e) => this.setState({newBookmarkName : e.target.value})} defaultValue=""/>
+							      <FormControl type="text" placeholder="Bookmark url" onChange={(e) => this.setState({newUrlLink : e.target.value})} defaultValue=""/>
+							    </FormGroup>
+						    </form>
+				          </Modal.Body>
+				          <Modal.Footer>
+				            <Button onClick={this._saveNewBookmark.bind(this)}>Save</Button>
+				          </Modal.Footer>
+				        </Modal>
+				      </div>
+					}
+				</div>
+			)}
 
 		</div>);
 	}
 }
 
 export default FolderComponent; 	
+
+

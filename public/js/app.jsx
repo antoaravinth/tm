@@ -47,44 +47,10 @@ class App extends React.Component {
 	getBackboneModels() {
 		return [this.props.folders]
 	}
-
-	saveFolder(){
-
-		//run few validations
-		if(this.state.newFolderName.trim() === "")
-			this.setState({errorMessage : "Folder name can't be empty"})
-		else if(this.state.newFolderName.length >= 8)
-			this.setState({errorMessage : "Folder name cant be more than 8 chars"})
-		else{
-			this.props.folders.add({name : this.state.newFolderName});
-			let folder = folders.at(folders.length - 1)
-			folder.save(null,{
-				wait: true,
-				error : (model,response) => {
-					console.log(response.responseText)
-					let errorMessage = JSON.parse(response.responseText)
-					this.setState({errorMessage : errorMessage.message })
-				}
-			})
-		}
-	}
-
 	render() {
 		return (<div>
 
-			<Form horizontal>
-			    <FormGroup controlId="folderNameId">
-			      <Col componentClass={ControlLabel} sm={1}>
-			        Folder Name
-			      </Col>
-			      <Col sm={1}>
-			        <FormControl type="textbox" placeholder="foldername" onChange={(e) => this.setState({newFolderName : e.target.value})} />
-			        <Button onClick={this.saveFolder.bind(this)}>
-			          Submit
-			        </Button>
-			      </Col>
-			    </FormGroup>
-		  </Form>
+			<FolderComponent newFolder={true} folders={folders}/>
 
 			<Tab.Container id="left-tabs-example" defaultActiveKey="first">
 			    <Row className="clearfix">
