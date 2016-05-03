@@ -9,11 +9,11 @@ var BookmarkSchema = new Schema({
 });
 
 var FolderSchema = new Schema({
-	name : { type: String, required: true, unique: true },
+	name : { type: String, required: true },
 	bookmarks : [BookmarkSchema]
 });
 
-FolderSchema.plugin(uniqueValidator, { message: 'Error, expected folder name to be unique.' });
+// FolderSchema.plugin(uniqueValidator, { message: 'Error, expected folder name to be unique.' });
 
 module.exports = { 
 	Folder : mongoose.model('Folder',FolderSchema),

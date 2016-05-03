@@ -2,6 +2,29 @@ import React from "react";
 import { Row,Tab,Nav,NavItem,Col,Table } from 'react-bootstrap';
 
 export class BookmarkComponent extends React.Component {
+
+	// componentDidMount() {
+	// 	console.log("mounting happened")
+	//     // Whenever there may be a change in the Backbone data, trigger a reconcile.
+	//     this.getBackboneModels().forEach(function(model) {
+	//       model.on('add change remove', this.forceUpdate.bind(this, null), this);
+	//     }, this);
+	// }
+
+	// componentWillUnmount() {
+	// 	// Ensure that we clean up any dangling references when the component is
+	// 	// destroyed.
+	// 	console.log("unmounting.")
+	// 	this.getBackboneModels().forEach(function(model) {
+	// 	  model.off(null, null, this);
+	// 	}, this);
+	// }
+
+	getBackboneModels() {
+		return [this.props.folderModel]
+	}
+
+
 	render() {
 		let folderModel = this.props.folderModel;
 

@@ -18,13 +18,13 @@ router.get('/dist/bundle.js', function(req, res) {
 router.route('/folders')
 	  .post(function(req,res){
 	  		var folder = new Folder();
-  			folder.name = req.body.foldername;
+  			folder.name = req.body.name;
 
-  			folder.save(function(err){
+  			folder.save(function(err,response){
   				if(err)
-	  				res.send(err);
+	  				res.status(500).send(err);
 	  			else
-	  				res.json({message : 'Folder saved successfully'});
+	  				res.json({message : 'Folder saved successfully',_id:response._id});
   			})
 	  })
   	  .get(function(req,res){
@@ -37,9 +37,9 @@ router.route('/folders')
 	  })
 
 //REST for single documents
-router.route('/folders/:foldername')
+router.route('/folders/:folderid')
 	.get(function(req,res){
-		  	Folder.find({name:req.params.foldername},function(err,folder){
+		  	Folder.find({_id:req.params.folderid},function(err,folder){
 		  		if(err)
 		  			res.send(err);
 		  		else
@@ -47,19 +47,19 @@ router.route('/folders/:foldername')
 		  	})
 	  })
 	  .put(function(req,res){
-		  	Folder.find({name:req.params.foldername},function(err,folder){
+		  	Folder.find({_id:req.params.folderid},function(err,folder){
 		  		if(err)
 		  			res.send(err);
 
 		  		if(folder.length != 0)
 		  		{
-			  		folder[0].name = req.body.foldername;
+			  		folder[0] = req.body;
 
 			  		folder[0].save(function(err){
 			  			if(err)
 			  				res.send(err);
-			  			
-			  			res.json({ message: 'Folder updated successfully' });
+			  			else
+			  				res.json({ message: 'Folder updated successfully' });
 			  		})
 			  	} 
 			  	else
@@ -67,13 +67,33 @@ router.route('/folders/:foldername')
 		  	})
 	  })
 	  .delete(function(req,res){
-	  		Folder.find({name:req.params.foldername})
+	  		Folder.find({_id:req.params.folderid})
 	  			  .remove(function(err,success){
 	  			  		if(err)
 	  			  			res.send(err);
 	  			  		else
 	  			  			res.json({message : 'Folder deleted successfully'});
 	  			  })
+	  })
+	  .patch(function(req,res){
+	  		Folder.find({_id:req.params.folderid},function(err,folder){
+		  		if(err)
+		  			res.send(err);
+
+		  		if(folder.length != 0)
+		  		{
+			  		folder[0].name = req.body.name;
+
+			  		folder[0].save(function(err){
+			  			if(err)
+			  				res.status(500).send(err);
+			  			else
+			  				res.status(200).json({ message: 'Folder updated successfully' });
+			  		})
+			  	} 
+			  	else
+			  		res.json({ message: 'Folder not found' });
+		  	})
 	  })
 
 //REST API for bookmarks
@@ -180,5 +200,13 @@ mongoose.connect('localhost:27017/collections')
 
 app.listen(port);
 console.log('server started on ' + port);
+
+
+
+/*
+let folders = new FolderCollections();
+var model = folder.at(0)
+model.set({name:"frombackbone1"})
+*/
 
 

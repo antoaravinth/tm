@@ -1,9 +1,10 @@
 import Backbone from 'backbone'
+import _ from 'underscore'
 
 var { Collection , Model } = Backbone;
 
 //Model
-var Folder = Backbone.Model.extend({
+export var Folder = Backbone.Model.extend({
     idAttribute: '_id',
     defaults: {
 		name: "",
@@ -17,5 +18,6 @@ var FolderCollections = Backbone.Collection.extend({
   model: Folder,
 });
 
+Folder.bind("remove", () => this.destroy());
 
 export default FolderCollections
