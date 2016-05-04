@@ -3,14 +3,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import FolderCollections from './collections/folders.js'
 import Folder from './collections/folders.js'
-import Bookmark from './collections/folders.js'
 import { Row,Tab,Nav,NavItem,Col,Table,FormGroup,ControlLabel,FormControl,Form,Button} from 'react-bootstrap';
 import {BookmarkComponent} from './views/bookmark.jsx';
 
-//for debugging
-// window.FolderCollections = FolderCollections
-window.Folder = Folder
-window.Bookmark = Bookmark
 
 let folders = new FolderCollections();
 folders.fetch({

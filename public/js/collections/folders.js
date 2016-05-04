@@ -1,5 +1,4 @@
 import Backbone from 'backbone'
-import _ from 'underscore'
 
 var { Collection , Model } = Backbone;
 
@@ -19,14 +18,6 @@ export var Folder = Backbone.Model.extend({
 	  }
 
 	  return resp;
-	}
-});
-
-export var Bookmark = Backbone.Model.extend({
-    idAttribute: '_id',
-    defaults: {
-		name: "",
-		url : ""
 	}
 });
 

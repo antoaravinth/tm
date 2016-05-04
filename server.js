@@ -1,18 +1,26 @@
 var express = require('express'), app = express(), bodyParser = require('body-parser') , mongoose = require('mongoose'),
- 	port = 8080 , router = express.Router() , Schema = require('./app/models/folder.js') , Folder = Schema.Folder , 
+ 	port = 8080 , router = express.Router() , htmlRouter = express.Router(), Schema = require('./app/models/folder.js') , Folder = Schema.Folder , 
  	Bookmark = Schema.Bookmark;
 
+console.log(app.get('env'))
 
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json());
 
-router.get('/', function(req, res) {
+htmlRouter.get('/', function(req, res) {
     res.sendfile('./public/index.html');
 });
 
-router.get('/dist/bundle.js', function(req, res) {
-    res.sendfile('./public/dist/bundle.js');
-});
+if(app.get('env') === 'PROD')
+{
+	htmlRouter.get('/dist/bundle.js', function(req, res) {
+	    res.sendfile('./public/dist/bundle.min.js');
+	});
+} else {
+	htmlRouter.get('/dist/bundle.js', function(req, res) {
+	    res.sendfile('./public/dist/bundle.js');
+	});
+}
 
 //REST API for folders
 router.route('/folders')
@@ -194,6 +202,9 @@ router.route('/folders/:folderid/bookmarks/:bookmarkid')
 
 //routes will be prefixed with apis
 app.use('/api', router);
+
+//router for html files
+app.use('/', htmlRouter);
 
 //local DB
 mongoose.connect('localhost:27017/collections')

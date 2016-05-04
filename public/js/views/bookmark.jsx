@@ -6,7 +6,14 @@ export class BookmarkComponent extends React.Component {
 
 	constructor(props) {
 	    super(props);
-	    this.state = {edit : false,newBookmarkname: props.bookmark.name, newUrl: props.bookmark.url,errorMessage: ""};
+	    this.state = {
+	    	edit : false,
+	    	newBookmarkname: props.bookmark.name, 
+	    	newUrl: props.bookmark.url,
+	    	errorMessage: "",
+	    	move : false,
+	    	destFolderId : "default"
+	    };
   	}
 
 	getBackboneModels() {
@@ -42,15 +49,49 @@ export class BookmarkComponent extends React.Component {
 	  	}
   	}
 
-  	_newBookmark(){
+  	_moveBookmark(){
+  		let bookmark = this.props.bookmark , 
+  		    bookmarkname = bookmark.name, url = bookmark.url, 
+  		    destFolder , folderCollection = this.props.folder.collection , newBookmark ,
+  		    bookmarkArray;
 
+  		if(this.state.destFolderId === "default")
+  			this.setState({errorMessage : "Specify folder to be moved"})
+  		else{
+  			this._deleteBookmark(this.props.bookmark._id,() => {
+
+  				destFolder = folderCollection.get({_id : this.state.destFolderId});
+  				bookmarkArray = destFolder.get("bookmarks");
+				newBookmark = {
+					name : bookmarkname,
+					url : url
+				}
+				bookmarkArray.push(newBookmark)
+				destFolder.set("bookmarks",bookmarkArray);
+
+				destFolder.save({folderid:this.state.destFolderId, bookmarkname:bookmarkname, url : url},
+				{
+					url: '/api/folders/' + this.props.folder.attributes._id + '/bookmarks/',
+					parse  : false,
+					type: 'POST',
+					wait: true,
+					success : (model,response) => {
+						newBookmark._id = response.bookmarkid;
+						alert("Bookmark moved successfully");
+					},
+					error : (model,response) => {
+						alert(response.responseText);
+					}
+				})
+  			})
+  		}
   	}
 
-  	_deleteBookmark(){
+  	_deleteBookmark(bookmarkId,cb){
   		let bookmarkArray = _.clone(this.props.folder.get("bookmarks"));
 
   		let updateBookmark = _.filter(bookmarkArray,(bookmark) => {
-  			return bookmark._id != this.props.bookmark._id;
+  			return bookmark._id != bookmarkId;
   		})
 
   		this.props.folder.save({},{
@@ -60,7 +101,10 @@ export class BookmarkComponent extends React.Component {
   			parse : false,
   			success : (model,response) => {
 				this.props.folder.set('bookmarks', updateBookmark);
-				alert("Bookmark deleted successfully");
+				if(typeof cb === "function")
+					cb();
+				else
+					alert("Bookmark deleted successfully");
 			},
 			error : (model,response) => {
 				alert(response)
@@ -84,8 +128,7 @@ export class BookmarkComponent extends React.Component {
 
 		            			{!this.state.edit &&
 		            				<div>
-				            			<b>id :</b><p>{bookmark._id}</p>
-				            			<b>name :</b><p>{bookmark.name}</p>
+				            			<b>Bookmarkname :</b><p>{bookmark.name}</p>
 				            			<b>url :</b><p>{bookmark.url}</p>
 			            			</div>
 			            		}
@@ -99,23 +142,50 @@ export class BookmarkComponent extends React.Component {
 								    </form>
 			            		}
 
+			            		{!this.state.move && !this.state.edit && this.props.folder.collection.length != 1 &&
+				            		<Button style={{float: "right"}} bsSize="xsmall" onClick={() => this.setState({move : true})}>
+				            			Move
+			            			</Button>
+			            		}
+
+		            			{this.state.move && 
+		            				<FormGroup controlId="formControlsSelect">
+								      <ControlLabel>Move To</ControlLabel>
+								      <FormControl componentClass="select" placeholder="select" onChange={(e) => this.setState({destFolderId : e.target.value})} defaultValue="default">
+								        <option value="default">select</option>
+								        {
+								        	this.props.folder.collection.map((folder) => {
+								        		if(this.props.folder.attributes._id !== folder.attributes._id)
+								        			return <option key={folder.attributes._id} value={folder.attributes._id}>{folder.attributes.name}</option>
+		            						})
+		            					}
+								      </FormControl>
+								      <Button style={{float: "right"}} bsSize="xsmall" onClick={this._moveBookmark.bind(this)}>
+								      	Move Now!
+								      </Button>
+
+								    </FormGroup>
+		            			}
+
 			            		
-			            		{!this.state.edit &&
-				            		<Button style={{float: "right"}} bsSize="xsmall" onClick={this._deleteBookmark.bind(this)}>
+			            		{!this.state.edit && !this.state.move &&
+				            		<Button style={{float: "right"}} bsSize="xsmall" onClick={this._deleteBookmark.bind(this,this.props.bookmark._id)}>
 				            			Delete
 			            			</Button>
 		            			}
 
-			            		{this.state.edit &&
+			            		{this.state.edit && !this.state.move &&
 			            			<Button style={{float: "right"}} bsSize="xsmall" onClick={this._updateBookmark.bind(this)}>
 			            				Save
 			            			</Button>
 			            		}
 
-			            		<Button style={{float: "right"}} bsSize="xsmall" onClick={() => this.setState({edit : !this.state.edit})}>
-			            			{this.state.edit && 'Cancel'}
-			            			{!this.state.edit && 'Edit'}
-			            		</Button>
+			            		{!this.state.move &&
+				            		<Button style={{float: "right"}} bsSize="xsmall" onClick={() => this.setState({edit : !this.state.edit})}>
+				            			{this.state.edit && 'Cancel'}
+				            			{!this.state.edit && 'Edit'}
+				            		</Button>
+				            	}
 
 			            		<br />
 		            			<hr />
