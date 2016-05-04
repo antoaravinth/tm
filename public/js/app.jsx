@@ -28,7 +28,6 @@ class App extends React.Component {
   	}
 
 	componentDidMount() {
-		console.log("mounting happened")
 	    // Whenever there may be a change in the Backbone data, trigger a reconcile.
 	    this.getBackboneModels().forEach(function(model) {
 	      model.on('add change remove', this.forceUpdate.bind(this, null), this);
@@ -38,7 +37,6 @@ class App extends React.Component {
 	componentWillUnmount() {
 		// Ensure that we clean up any dangling references when the component is
 		// destroyed.
-		console.log("unmounting.")
 		this.getBackboneModels().forEach(function(model) {
 		  model.off(null, null, this);
 		}, this);
@@ -50,28 +48,33 @@ class App extends React.Component {
 	render() {
 		return (<div>
 
-			<FolderComponent newFolder={true} folders={folders}/>
-
-			<Tab.Container id="left-tabs-example" defaultActiveKey="first">
-			    <Row className="clearfix">
-			      <Col sm={4}>
-				      {this.props.folders.map((folder) => { 
-			      			return (<Nav bsStyle="pills" stacked key={folder.attributes._id}>
-					          <NavItem eventKey={folder.attributes._id}>
-					            	<FolderComponent folder={folder} folderCollection={this.props.folders}/>
-					          </NavItem>
-					        </Nav>)
-			        	})}
-			      </Col>
-			      <Col sm={8}>
-			      	{this.props.folders.map((folder) => { 
-			      		return folder.attributes.bookmarks.map((bookmark) => {
-			      			return (<BookmarkComponent bookmark={bookmark} key={bookmark.attributes._id} folder={folder}/>)
-			      		})
-			     	})}
-			      </Col>
-			    </Row>
-		  	</Tab.Container>
+			<Col md={1} />
+			<Col md={10}>
+				<br />
+				<FolderComponent newFolder={true} folders={folders}/>
+				<br />
+				<Tab.Container id="left-tabs-example" defaultActiveKey="first">
+				    <Row className="clearfix">
+				      <Col sm={4}>
+					      {this.props.folders.map((folder) => { 
+				      			return (<Nav bsStyle="pills" stacked key={folder.attributes._id}>
+						          <NavItem eventKey={folder.attributes._id}>
+						            	<FolderComponent folder={folder} folderCollection={this.props.folders}/>
+						          </NavItem>
+						        </Nav>)
+				        	})}
+				      </Col>
+				      <Col sm={8}>
+				      	{this.props.folders.map((folder) => { 
+				      		return folder.attributes.bookmarks.map((bookmark) => {
+				      			return (<BookmarkComponent bookmark={bookmark} key={bookmark._id} folder={folder}/>)
+				      		})
+				     	})}
+				      </Col>
+				    </Row>
+			  	</Tab.Container>
+		  	</Col>
+		  	<Col md={1} />
 		</div>)
 	}
 }

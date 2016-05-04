@@ -41,7 +41,7 @@ router.route('/folders/:folderid')
 	.get(function(req,res){
 		  	Folder.find({_id:req.params.folderid},function(err,folder){
 		  		if(err)
-		  			res.send(err);
+		  			res.status(500).send(err);
 		  		else
 		  			res.json(folder)
 		  	})
@@ -57,7 +57,7 @@ router.route('/folders/:folderid')
 
 			  		folder[0].save(function(err){
 			  			if(err)
-			  				res.send(err);
+			  				res.status(500).send(err);
 			  			else
 			  				res.json({ message: 'Folder updated successfully' });
 			  		})
@@ -70,7 +70,7 @@ router.route('/folders/:folderid')
 	  		Folder.find({_id:req.params.folderid})
 	  			  .remove(function(err,success){
 	  			  		if(err)
-	  			  			res.send(err);
+	  			  			res.status(500).send(err);
 	  			  		else
 	  			  			res.json({message : 'Folder deleted successfully'});
 	  			  })
@@ -86,7 +86,7 @@ router.route('/folders/:folderid')
 
 			  		folder[0].save(function(err){
 			  			if(err)
-			  				res.status(500).send(err);
+			  				res.status(500).status(500).send(err);
 			  			else
 			  				res.status(200).json({ message: 'Folder updated successfully' });
 			  		})
@@ -97,7 +97,7 @@ router.route('/folders/:folderid')
 	  })
 
 //REST API for bookmarks
-router.route('/bookmarks')
+router.route('/folders/:folderid/bookmarks')
 	  .post(function(req,res){
 
 	  		var query = {_id : req.body.folderid} , updatedBookmarksRef ,
@@ -109,19 +109,18 @@ router.route('/bookmarks')
 					return res.send({error: "Folder not found."});
 
 				updatedBookmarksRef = folder.bookmarks
-				bookmark.name = req.body.name;
+				bookmark.name = req.body.bookmarkname;
 	  			bookmark.url = req.body.url;
 
 	  			updatedBookmarksRef.push(bookmark)
-	  			console.log(updatedBookmarksRef)
 
 				Folder.findOneAndUpdate(
 	  			query,
 	  			{ $set: { "bookmarks": updatedBookmarksRef } }, 
 	  			{upsert:true}, 
 	  			function(err, response){
-				    if (err) return res.send(err);
-				    return res.json({message : "Bookmark saved successfully",_id:response._id});
+				    if (err) return res.status(500).send(err);
+				    return res.json({message : "Bookmark saved successfully",bookmarkid:bookmark._id});
 				});
 			})
 		})
@@ -134,7 +133,7 @@ router.route('/folders/:folderid/bookmarks/:bookmarkid')
 			Folder.findOne(query,'bookmarks',function(err, folder){
 
 				if(err || folder === null)
-					return res.send({error: "Folder not found."});
+					return res.status(404).send({error: "Folder not found."});
 
 				bookmark = folder.bookmarks.id(req.params.bookmarkid);
 				if(bookmark != undefined || bookmark != null)
@@ -142,7 +141,7 @@ router.route('/folders/:folderid/bookmarks/:bookmarkid')
 					bookmark.remove();
 					folder.save(function (err) {
 				  	if(err)
-				  		res.send(err);
+				  		res.status(500).send(err);
 				  	  else
 	  			  		res.json({message : 'Bookmark deleted successfully'});
 					});
@@ -157,7 +156,7 @@ router.route('/folders/:folderid/bookmarks/:bookmarkid')
 			Folder.findOne(query,'bookmarks',function(err, folder){
 
 				if(err || folder === null)
-					return res.send({error: "Folder not found."});
+					return res.status(404).send({error: "Folder not found."});
 
 				bookmark = folder.bookmarks.id(req.params.bookmarkid);
 				if(bookmark != undefined || bookmark != null) 
@@ -173,12 +172,12 @@ router.route('/folders/:folderid/bookmarks/:bookmarkid')
 			Folder.findOne(query,'bookmarks',function(err, folder){
 
 				if(err || folder === null)
-					return res.send({error: "Folder not found."});
+					return res.status(404).send({error: "Folder not found."});
 
 				bookmark = folder.bookmarks.id(req.params.bookmarkid);
 				if(bookmark != undefined || bookmark != null)
 				{
-					bookmark.name = req.body.name;
+					bookmark.name = req.body.bookmarkname;
 					bookmark.url = req.body.url;
 					folder.save(function (err) {
 				  	if(err)
@@ -192,21 +191,15 @@ router.route('/folders/:folderid/bookmarks/:bookmarkid')
 			})
 	  })
 
+
 //routes will be prefixed with apis
 app.use('/api', router);
 
-//connect to the remote db
+//local DB
 mongoose.connect('localhost:27017/collections')
 
 app.listen(port);
 console.log('server started on ' + port);
 
-
-
-/*
-let folders = new FolderCollections();
-var model = folder.at(0)
-model.set({name:"frombackbone1"})
-*/
 
 

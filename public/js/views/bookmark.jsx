@@ -1,29 +1,13 @@
 import React from "react";
 import { Row,Tab,Nav,NavItem,Col,FormGroup,ControlLabel,Button,FormControl,Alert} from 'react-bootstrap';
+import _ from 'underscore';
 
 export class BookmarkComponent extends React.Component {
 
 	constructor(props) {
 	    super(props);
-	    this.state = {edit : false,newBookmarkname: props.bookmark.attributes.name, newUrl: props.bookmark.attributes.url,errorMessage: ""};
+	    this.state = {edit : false,newBookmarkname: props.bookmark.name, newUrl: props.bookmark.url,errorMessage: ""};
   	}
-
-	componentDidMount() {
-		console.log("mounting happened")
-	    // Whenever there may be a change in the Backbone data, trigger a reconcile.
-	    this.getBackboneModels().forEach(function(model) {
-	      model.on('remove', this.forceUpdate.bind(this, null), this);
-	    }, this);
-	}
-
-	componentWillUnmount() {
-		// Ensure that we clean up any dangling references when the component is
-		// destroyed.
-		console.log("unmounting.")
-		this.getBackboneModels().forEach(function(model) {
-		  model.off(null, null, this);
-		}, this);
-	}
 
 	getBackboneModels() {
 		return [this.props.bookmark]
@@ -40,18 +24,21 @@ export class BookmarkComponent extends React.Component {
   			this.setState({errorMessage : "Url can't be empty"})
   		else
   		{
-	  		bookmark.save({name:this.state.newBookmarkname,url:this.state.newUrl},{
-	  			url: '/api/folders/' + this.props.folder.attributes._id + '/bookmarks/' + bookmark.attributes._id,
-	  			wait : true,
-	  			error : (model,response) => {
-					let errorMessage = JSON.parse(response.responseText)
-					this.setState({errorMessage : errorMessage.message })
-				},
-				wait : true, 
+  			bookmark.name = this.state.newBookmarkname;
+  			bookmark.url = this.state.newUrl;
+  			this.props.folder.save({bookmarkname:this.state.newBookmarkname ,url:this.state.newUrl},
+  			{
+				url: '/api/folders/' + this.props.folder.attributes._id + '/bookmarks/' + bookmark._id,
+				type: 'PUT',
+				wait : true,
+				parse: false,
 				success : (model,response) => {
 					this.setState({edit:!this.state.edit,newBookmarkname:"",errorMessage: "",newUrl:""})
+				},
+				error : (model,response) => {
+					alert(response)
 				}
-	  		});
+			});
 	  	}
   	}
 
@@ -60,22 +47,25 @@ export class BookmarkComponent extends React.Component {
   	}
 
   	_deleteBookmark(){
-  		let folderId = this.props.folder.attributes._id;
-		let removeBookmark = this.props.bookmark;
-		console.log(removeBookmark)
-		removeBookmark.destroy({ 
-			wait : true,
-			url: "/api/folders/" + folderId + "/bookmarks/" + this.props.bookmark.attributes._id, 
-			success : (model,response) => {
-				console.log(model)
-				console.log("bookmark remvoed")
-				// this.props.folder.collection.fetch()
+  		let bookmarkArray = _.clone(this.props.folder.get("bookmarks"));
+
+  		let updateBookmark = _.filter(bookmarkArray,(bookmark) => {
+  			return bookmark._id != this.props.bookmark._id;
+  		})
+
+  		this.props.folder.save({},{
+  			url: '/api/folders/' + this.props.folder.attributes._id + '/bookmarks/' + this.props.bookmark._id,
+  			type: 'DELETE',
+  			wait : true,
+  			parse : false,
+  			success : (model,response) => {
+				this.props.folder.set('bookmarks', updateBookmark);
+				alert("Bookmark deleted successfully");
 			},
 			error : (model,response) => {
-				console.log(" error bookmark remvoed")
-				console.log(response)
+				alert(response)
 			}
-		})
+  		})
   	}
 
 	render() {
@@ -84,7 +74,7 @@ export class BookmarkComponent extends React.Component {
 			<div>
 				<Tab.Content animation>
 			          <Tab.Pane eventKey={this.props.folder.attributes._id}>
-		            		<div key={bookmark.attributes._id}>
+		            		<div key={bookmark._id}>
 
 		            			{this.state.errorMessage != "" &&
 		            				<Alert bsStyle="warning">
@@ -94,17 +84,17 @@ export class BookmarkComponent extends React.Component {
 
 		            			{!this.state.edit &&
 		            				<div>
-				            			<b>id :</b><p>{bookmark.attributes._id}</p>
-				            			<b>name :</b><p>{bookmark.attributes.name}</p>
-				            			<b>url :</b><p>{bookmark.attributes.url}</p>
+				            			<b>id :</b><p>{bookmark._id}</p>
+				            			<b>name :</b><p>{bookmark.name}</p>
+				            			<b>url :</b><p>{bookmark.url}</p>
 			            			</div>
 			            		}
 			            		{this.state.edit &&
 			            			<form>
 									    <FormGroup controlId="formControlsText">
 									      <ControlLabel>Edit bookmarkname Name</ControlLabel>
-									      <FormControl type="text" placeholder="bookmarkname" onChange={(e) => this.setState({newBookmarkname : e.target.value})} defaultValue={bookmark.attributes.name}/>
-									      <FormControl type="text" placeholder="url" onChange={(e) => this.setState({newUrl : e.target.value})} defaultValue={bookmark.attributes.url}/>
+									      <FormControl type="text" placeholder="bookmarkname" onChange={(e) => this.setState({newBookmarkname : e.target.value})} defaultValue={bookmark.name}/>
+									      <FormControl type="text" placeholder="url" onChange={(e) => this.setState({newUrl : e.target.value})} defaultValue={bookmark.url}/>
 									    </FormGroup>
 								    </form>
 			            		}

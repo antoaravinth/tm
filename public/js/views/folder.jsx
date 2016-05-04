@@ -3,6 +3,7 @@ import { Button , FormGroup , ControlLabel , FormControl , Alert, Col, Popover,M
 import {BookmarkComponent} from './bookmark.jsx';
 import {Popup} from './popup.jsx';
 import ReactDOM from 'react-dom';
+import _ from 'underscore';
 
 export class FolderComponent extends React.Component {
 
@@ -43,6 +44,7 @@ export class FolderComponent extends React.Component {
 			let newfolder = folders.at(folders.length - 1)
 			newfolder.save(null,{
 				wait: true,
+				parse : false,
 				error : (model,response) => {
 					console.log(response.responseText)
 					let errorMessage = JSON.parse(response.responseText)
@@ -62,12 +64,10 @@ export class FolderComponent extends React.Component {
 				error : (model,response) => {
 					console.log(response.responseText)
 					let errorMessage = JSON.parse(response.responseText)
-					if(errorMessage.name != undefined){
-						this.setState({errorMessage : errorMessage.errors.name.message })
-					} else
-						this.setState({errorMessage : errorMessage.message })
+					this.setState({errorMessage : errorMessage.message })
 				},
 				wait : true, 
+				parse : false,
 				success : (model,response) => {
 					this.setState({edit:!this.state.edit,newFolderName:"",errorMessage: ""})
 				}
@@ -79,29 +79,48 @@ export class FolderComponent extends React.Component {
 		let folderId = this.props.folder.attributes._id;
 		let removeFolder = this.props.folderCollection.get({_id:folderId});
 		removeFolder.destroy({ 
+			wait: true,
+			parse : false,
 			url: "/api/folders/" + folderId, 
 			success : (model,response) => {
-				// removeFolder.collection.remove(removeFolder)
-				// ReactDOM.render(<Popup />,document.querySelector("#error"));
 			},
 			error : (model,response) => {
-
+				alert(response)
 			}
 		})
 	}
 
 	_saveNewBookmark(){
-		this.setState({showNewFolderPopUp: false})
-		this.props.folder.save(
-			{folderid:this.props.folder.attributes._id, name:this.state.newBookmarkName, url : this.state.newUrlLink},
+
+		if(this.state.newBookmarkName.trim() === "" || this.state.newUrlLink.trim() === "")
+			this.setState({errorMessage : "Both url and name is required"});
+		else{
+			this.setState({showNewFolderPopUp: false})
+			let bookmarkArray = _.clone(this.props.folder.get("bookmarks"));
+
+			let newBookmark = {
+				name : this.state.newBookmarkName,
+				url : this.state.newUrlLink
+			}
+
+			this.props.folder.save({folderid:this.props.folder.attributes._id, bookmarkname:this.state.newBookmarkName, url : this.state.newUrlLink},
 			{
-				url:"/api/bookmarks/",
+				url: '/api/folders/' + this.props.folder.attributes._id + '/bookmarks/',
+				parse  : false,
 				type: 'POST',
+				wait: true,
+				dontchange: true,
 				success : (model,response) => {
-					// this.props.folderCollection.fetch()
-					model.trigger('add')
+					newBookmark._id = response.bookmarkid;
+					bookmarkArray.push(newBookmark)
+					this.props.folder.set("bookmarks",bookmarkArray);
+					this.setState({newBookmarkName:"",newUrlLink:""})
+				},
+				error : (model,response) => {
+					alert(response.responseText);
 				}
 			})
+		}
 	}
 
 	render() {
@@ -194,8 +213,13 @@ export class FolderComponent extends React.Component {
 				          </Modal.Header>
 				          <Modal.Body>
 				            <form>
+					            {this.state.errorMessage != "" &&
+									<Alert bsStyle="warning">
+									    <strong>Error</strong> {this.state.errorMessage}
+									</Alert>
+								}
 							    <FormGroup controlId="formControlsText">
-							      <ControlLabel>Edit Folder Name</ControlLabel>
+							      <ControlLabel>New Bookmark</ControlLabel>
 							      <FormControl type="text" placeholder="Bookmark name" onChange={(e) => this.setState({newBookmarkName : e.target.value})} defaultValue=""/>
 							      <FormControl type="text" placeholder="Bookmark url" onChange={(e) => this.setState({newUrlLink : e.target.value})} defaultValue=""/>
 							    </FormGroup>

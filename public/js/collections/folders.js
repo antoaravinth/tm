@@ -6,20 +6,20 @@ var { Collection , Model } = Backbone;
 //Model
 export var Folder = Backbone.Model.extend({
     idAttribute: '_id',
-    defaults: {
-		name: "",
-		bookmarks : []
+    defaults: function() {
+    	return {
+			name: "",
+			bookmarks : []
+		}
 	},
-	initialize: function() {
-		let bookmarkModels = []
-		console.log(this.get('bookmarks'))
-		this.get('bookmarks').forEach(function(bookmark){
-			bookmarkModels.push(new Bookmark(bookmark)) 
-		})
-        this.set({ 
-        	'bookmarks' : bookmarkModels
-        })
-    }
+	parse: function(resp,options) {
+	  // don't update model with the server response if {parse:false} is passed to save
+	  if (!options.parse)  {
+	  	return this.attributes;
+	  }
+
+	  return resp;
+	}
 });
 
 export var Bookmark = Backbone.Model.extend({
@@ -35,8 +35,5 @@ var FolderCollections = Backbone.Collection.extend({
   url: "/api/folders",
   model: Folder,
 });
-
-// Folder.bind("remove", () => this.destroy());
-// Bookmark.bind("remove", () => this.destroy());
 
 export default FolderCollections
