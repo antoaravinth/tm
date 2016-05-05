@@ -13,7 +13,7 @@ export class FolderComponent extends React.Component {
 	    	edit: false , 
 	    	newFolderName : props.folder != undefined ? props.folder.attributes.name : "" , 
 	    	errorMessage: "",
-	    	showNewFolderPopUp : false,
+	    	showNewBookmarkPopUp : false,
 	    	newBookmarkName : "",
 	    	newUrlLink : "",
 	    	newFolderPopUp: false
@@ -45,6 +45,10 @@ export class FolderComponent extends React.Component {
 			newfolder.save(null,{
 				wait: true,
 				parse : false,
+				success : (model,response) => {
+					this.setState({newFolderName : ""})
+					this.setState({errorMessage : "" })
+				},
 				error : (model,response) => {
 					console.log(response.responseText)
 					let errorMessage = JSON.parse(response.responseText)
@@ -95,7 +99,7 @@ export class FolderComponent extends React.Component {
 		if(this.state.newBookmarkName.trim() === "" || this.state.newUrlLink.trim() === "")
 			this.setState({errorMessage : "Both url and name is required"});
 		else{
-			this.setState({showNewFolderPopUp: false})
+			this.setState({showNewBookmarkPopUp: false})
 			let bookmarkArray = _.clone(this.props.folder.get("bookmarks"));
 
 			let newBookmark = {
@@ -114,7 +118,7 @@ export class FolderComponent extends React.Component {
 					newBookmark._id = response.bookmarkid;
 					bookmarkArray.push(newBookmark)
 					this.props.folder.set("bookmarks",bookmarkArray);
-					this.setState({newBookmarkName:"",newUrlLink:""})
+					this.setState({newBookmarkName:"",newUrlLink:"",errorMessage:""})
 				},
 				error : (model,response) => {
 					alert(response.responseText);
@@ -134,7 +138,7 @@ export class FolderComponent extends React.Component {
 					<div className="modal-container">
 				        <Modal
 				          show={this.state.newFolderPopUp}
-				          onHide={() => this.setState({newFolderPopUp: false})}
+				          onHide={() => this.setState({newFolderPopUp: false,errorMessage:""})}
 				          aria-labelledby="contained-modal-title"
 				        >
 				          <Modal.Header closeButton>
@@ -198,14 +202,14 @@ export class FolderComponent extends React.Component {
 		            }			
 
 		            {!this.state.edit &&
-		            	<Button style={{float: "right"}} bsSize="xsmall" onClick={() => this.setState({showNewFolderPopUp: true})}>Add new bookmark</Button>
+		            	<Button style={{float: "right"}} bsSize="xsmall" onClick={() => this.setState({showNewBookmarkPopUp: true})}>Add new bookmark</Button>
 		            }
 
-		            {this.state.showNewFolderPopUp &&
+		            {this.state.showNewBookmarkPopUp &&
 			          <div className="modal-container" style={{height: 200}}>
 				        <Modal
 				          show={true}
-				          onHide={() => this.setState({showNewFolderPopUp: false})}
+				          onHide={() => this.setState({showNewBookmarkPopUp: false,errorMessage: ""})}
 				          aria-labelledby="contained-modal-title"
 				        >
 				          <Modal.Header closeButton>
