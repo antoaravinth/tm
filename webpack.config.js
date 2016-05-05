@@ -2,6 +2,7 @@ var path = require('path');
 var webpack = require("webpack");
 var minimize = process.argv.indexOf('--minimize') !== -1;
 var plugins = [];
+var filelocation = "./public/dist/bundle.js"
 
 if (minimize) {
   plugins.push(
@@ -18,12 +19,13 @@ if (minimize) {
         }
     }
   ));
+  filelocation = "./public/dist/bundle.min.js"
 }
 module.exports = {
     entry: './public/js/app.jsx',
     output: {
         path: __dirname,
-        filename: './public/dist/bundle.min.js' 
+        filename: filelocation
     },
     module: {
         loaders: [{
